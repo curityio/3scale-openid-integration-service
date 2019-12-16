@@ -1,4 +1,4 @@
 requests
-Flask==0.10.1
+Flask==1.0
 pyjwkest==1.0.6
 uwsgi==2.0.18
