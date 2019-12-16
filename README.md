@@ -1,13 +1,13 @@
-## 3Scale OpenID Integration Wrapper
+## 3Scale OpenID Integration Service
 
-This sample python application acts as a wrapper of 3Scale's REST API and Red Hat SSO integration.
+This sample python application acts as a wrapper of 3Scale's Red Hat SSO integration with OpenID Connect.
 It translates incoming requests to RESTCONF which is used by Curity's configuration admin API.
 
 ### Setup Explanation
 
 3Scale communicates with an OpenID provider using one of two proprietary ways:
- - [Rest API](https://github.com/3scale/zync/tree/master/examples/rest-api)
- - Red Hat SSO, using the ClientRepresentation found [here](https://access.redhat.com/webassets/avalon/d/red-hat-single-sign-on/version-7.0.0/restapi/)
+ - [Rest API](https://github.com/3scale/zync/tree/master/examples/rest-api) (unsupported by this repository)
+ - Red Hat SSO, using the ClientRepresentation found [here](https://access.redhat.com/webassets/avalon/d/red-hat-single-sign-on/version-7.0.0/restapi/) (supported by this repository)
 
 Both these ways use the OpenID Issuer as base url. Since Curity's Rest API is served under another port than the OpenID Server, we would need to proxy those requests to the RESTCONF API.
 
@@ -16,7 +16,7 @@ This can be done using several techniques, as an example, we ll use nginx. So th
 +------------+            +------------+
 |   3Scale   | -------- > |   Nginx    | -------------------
 +------------+            +------------+                    |
-                        8443    |                           | 8443 (<issuer>/clients)
+                        8443    |                           | 8443 (<issuer>/clients-registrations)
                                 |                           |
                                 ↓                           ↓
                           +------------+     6749   +-------------+   
@@ -25,11 +25,6 @@ This can be done using several techniques, as an example, we ll use nginx. So th
 ```
 The Ngnix configuration for this example looks like this:
 ```
-
-        location /~/clients {
-            proxy_pass "http://<wrapper_host>:5555";
-        }
-
         location /~/clients-registrations/default {
             proxy_pass "http://<wrapper_host>:5555";
         }
@@ -56,7 +51,8 @@ issuer_path  = "/~"                                 # Curity's oauth-anonymous e
 introspection_path = "/oauth/v2/oauth-introspect"   # Curity's introspection endpoint path
 introspection_client_id = "3scale_rest_api_wrapper" # Client ID for introspection
 introspection_client_secret = "Password2"           # Client secret
-debug = False
+verify_ssl = True                                   # Verify ssl certificate for introspection and RESTCONF API
+debug = False                                       # Run in debug mode
 ```
 The client configured in this section must be allowed to do introspection.
 
@@ -75,6 +71,7 @@ Alternatively, the following environment variables can be set (i.e in a containe
 * CURITY_INTROSPECTION_PATH
 * INTROSPECTION_CLIENT_ID
 * INTROSPECTION_CLIENT_SECRET
+* VERIFY_SSL
 * DEBUG
 
 #### Curity configuration
@@ -90,16 +87,16 @@ To enable this, set the flag "Use Access Token As JWT" in the Token Profile/Toke
 
 1. Create/Update a client
 
-3Scale calls either `<openid_issuer>/clients/<client_id>` or `<openid_issuer>/clients-registrations/default/<client_id>`
+3Scale calls `<openid_issuer>/clients-registrations/default/<client_id>`
 
-Both are translated to a PUT to 
-`https://<curity_host>:<admin_port>/admin/api/restconf/data/base:profiles/base:profile=<token_profile_id>,oauth-service/base:settings/profile-oauth:authorization-server/profile-oauth:client-store/profile-oauth:config-backed/client=<client_id>"`
+This is translated to a PUT to 
+`http(s)://<curity_host>:<admin_port>/admin/api/restconf/data/base:profiles/base:profile=<token_profile_id>,oauth-service/base:settings/profile-oauth:authorization-server/profile-oauth:client-store/profile-oauth:config-backed/client=<client_id>"`
 
-Keep in mind that the clients created do not have any authenticators selected so if you need to add more specific configuration you can modify the corresponding JSON Object as needed.
+Keep in mind that the clients created have a basic configuration (i.e. no authenticator-filters, template-areas etc), so if you need to add more specific configuration you can modify the corresponding JSON Object as needed in `server.py`.
 
 2. Delete a client
 
-3Scale calls either `<openid_issuer>/clients/<client_id>` or `<openid_issuer>/clients-registrations/default/<client_id>` with HTTP DELETE.
+3Scale calls `<openid_issuer>/clients-registrations/default/<client_id>` with HTTP DELETE.
 This is translated to a DELETE request on Curity's RESTCONF API.
 
-`https://<curity_host>:<admin_port>/admin/api/restconf/data/base:profiles/base:profile=<token_profile_id>,oauth-service/base:settings/profile-oauth:authorization-server/profile-oauth:client-store/profile-oauth:config-backed/client=<client_id>"`
+`http(s)://<curity_host>:<admin_port>/admin/api/restconf/data/base:profiles/base:profile=<token_profile_id>,oauth-service/base:settings/profile-oauth:authorization-server/profile-oauth:client-store/profile-oauth:config-backed/client=<client_id>"`

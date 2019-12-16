@@ -7,7 +7,6 @@ from flask import Flask, jsonify, request, make_response
 from oauth.oauth_filter import OAuthFilter
 
 app = Flask(__name__)
-refOauth = OAuthFilter(verify_ssl=False)
 
 
 def string_to_bool(string, default):
@@ -34,14 +33,15 @@ introspection_path = os.getenv('CURITY_INTROSPECTION_PATH') or "/oauth/v2/oauth-
 introspection_client_id = os.getenv('INTROSPECTION_CLIENT_ID') or "CLIENT_ID"
 introspection_client_secret = os.getenv('INTROSPECTION_CLIENT_SECRET') or "CLIENT_SECRET"
 debug = string_to_bool(os.getenv("DEBUG"), default=False)
+verify_ssl = string_to_bool(os.getenv("VERIFY_SSL"), default=True)
 ###################################
 #             CONFIG              #
 ###################################
 
+refOauth = OAuthFilter(verify_ssl=verify_ssl)
 restconf_api_endpoint = "%s/admin/api/restconf/data/base:profiles/base:profile=%s,oauth-service/base:settings/profile-oauth:authorization-server/profile-oauth:client-store/profile-oauth:config-backed/client=%s"
 
 
-@app.route(issuer_path + "/clients/<client_id>", methods=["PUT"])
 @app.route(issuer_path + "/clients-registrations/default/<client_id>", methods=["POST", "PUT"])
 @refOauth.protect(scopes=[""])
 def create_client(client_id):
@@ -116,7 +116,7 @@ def create_client(client_id):
     yang_json = "application/yang-data+json"
     response = requests.put(restconf_api_endpoint_of_client,
                             json=restconf_data,
-                            verify=False,
+                            verify=verify_ssl,
                             headers={"Content-Type": yang_json, "Accept": yang_json},
                             auth=(restconf_api_username, restconf_api_password))
 
@@ -133,7 +133,6 @@ def create_client(client_id):
     return jsonify(dict(OK=True))
 
 
-@app.route(issuer_path + "/clients/<client_id>", methods=["DELETE"])
 @app.route(issuer_path + "/clients-registrations/default/<client_id>", methods=["DELETE"])
 @refOauth.protect(scopes=[""])
 def delete_client(client_id):
@@ -142,7 +141,7 @@ def delete_client(client_id):
     restconf_api_endpoint_of_client = restconf_api_endpoint % (restconf_api_host, oauth_profile_id, client_id)
 
     response = requests.delete(restconf_api_endpoint_of_client,
-                               verify=False,
+                               verify=verify_ssl,
                                auth=(restconf_api_username, restconf_api_password))
     if debug:
         print("response body = %s" % response.request.body)
