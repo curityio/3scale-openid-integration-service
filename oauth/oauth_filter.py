@@ -28,7 +28,6 @@ class OAuthFilter:
         self.protected_endpoints = {}
         self.configured = False
         self.verify_ssl = verify_ssl
-        logger.warn("testing works?!")
 
     def configure_with_jwt(self, jwks_url, issuer, audience, scopes=[]):
         """

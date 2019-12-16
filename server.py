@@ -124,6 +124,7 @@ def create_client(client_id):
     app.logger.debug("request headers = %s" % response.request.headers)
     app.logger.debug("response status_code = %s" % response.status_code)
     if response.status_code >= 400:
+        app.logger.warn("Could not update/create client with ID %s" % client_id)
         try:
             app.logger.debug("response body from upstream = %s" % response.json())
         except ValueError:
@@ -147,6 +148,7 @@ def delete_client(client_id):
     app.logger.debug("response headers = %s" % response.request.headers)
 
     if response.status_code >= 400:
+        app.logger.warn("Could not delete client %s" % client_id)
         try:
             app.logger.debug("response body from upstream = %s" % response.json())
         except ValueError:
