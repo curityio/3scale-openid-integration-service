@@ -15,18 +15,20 @@
 ##########################################################################
 
 import re
-
+import logging
 from flask import request, abort, g, make_response
 from oauth.jwt_validator import JwtValidator
 from oauth.opaque_validator import OpaqueValidator
 from functools import wraps
 
+logger = logging.getLogger("uwsgi_file_app")
 
 class OAuthFilter:
     def __init__(self, verify_ssl=True):
         self.protected_endpoints = {}
         self.configured = False
         self.verify_ssl = verify_ssl
+        logger.warn("testing works?!")
 
     def configure_with_jwt(self, jwks_url, issuer, audience, scopes=[]):
         """
@@ -111,8 +113,8 @@ class OAuthFilter:
         return decorator
 
     def filter(self, scopes=None):
-        print("Request method = " + str(request.method))
-        print("Authorization Header " + str(request.headers.get("authorization")))
+        logger.debug("Request method = " + str(request.method))
+        logger.debug("Authorization Header " + str(request.headers.get("authorization")))
         token = self._extract_access_token(request)
 
         try:

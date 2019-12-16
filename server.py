@@ -1,3 +1,4 @@
+import logging
 import os
 from distutils.util import strtobool
 
@@ -48,8 +49,7 @@ def create_client(client_id):
     client_id = request.path[request.path.rfind("/") + 1:]
     data = request.json
 
-    if debug:
-        print("JSON = %s" % data)
+    app.logger.debug("JSON = %s" % data)
 
     name = data.get("name", data.get("client_name", ""))
     description = data.get("description", "")
@@ -63,12 +63,12 @@ def create_client(client_id):
     cc_flow_enabled = data.get("serviceAccountsEnabled", False) or "client_credentials" in data.get("grant_types")
     ropc_flow_enabled = data.get("directAccessGrantsEnabled", False) or "password" in data.get("grant_types")
 
-    if debug:
-        print("Got call to update client ID %s with name %s, description = %s, secret = %s, redirect URIs = %s," \
-              " attributes = %s, enabled = %s, code flow enabled = %s, implicit flow enabled = %s, cc flow enabled = %s, " \
-              "ropc enabled = %s" % (client_id, name, description, client_secret, redirect_uris, attributes, enabled,
-                                     code_flow_enabled, implicit_flow_enabled, cc_flow_enabled,
-                                     ropc_flow_enabled))
+    app.logger.debug("Got call to update client ID %s with name %s, description = %s, secret = %s, redirect URIs = %s," \
+                     " attributes = %s, enabled = %s, code flow enabled = %s, implicit flow enabled = %s, cc flow enabled = %s, " \
+                     "ropc enabled = %s" % (
+                     client_id, name, description, client_secret, redirect_uris, attributes, enabled,
+                     code_flow_enabled, implicit_flow_enabled, cc_flow_enabled,
+                     ropc_flow_enabled))
 
     if len(redirect_uris) == 0 or (len(redirect_uris) == 1 and not redirect_uris[0]) and (
             code_flow_enabled or implicit_flow_enabled):
@@ -120,15 +120,14 @@ def create_client(client_id):
                             headers={"Content-Type": yang_json, "Accept": yang_json},
                             auth=(restconf_api_username, restconf_api_password))
 
-    if debug:
-        print("request body = %s" % response.request.body)
-        print("request headers = %s" % response.request.headers)
-        print("response status_code = %s" % response.status_code)
-        if response.status_code >= 400:
-            try:
-                print("response body from upstream = %s" % response.json())
-            except ValueError:
-                pass
+    app.logger.debug("request body = %s" % response.request.body)
+    app.logger.debug("request headers = %s" % response.request.headers)
+    app.logger.debug("response status_code = %s" % response.status_code)
+    if response.status_code >= 400:
+        try:
+            app.logger.debug("response body from upstream = %s" % response.json())
+        except ValueError:
+            pass
 
     return jsonify(dict(OK=True))
 
@@ -143,18 +142,22 @@ def delete_client(client_id):
     response = requests.delete(restconf_api_endpoint_of_client,
                                verify=verify_ssl,
                                auth=(restconf_api_username, restconf_api_password))
-    if debug:
-        print("response body = %s" % response.request.body)
-        print("response headers = %s" % response.request.headers)
+
+    app.logger.debug("response body = %s" % response.request.body)
+    app.logger.debug("response headers = %s" % response.request.headers)
 
     if response.status_code >= 400:
         try:
-            print("response body from upstream = %s" % response.json())
+            app.logger.debug("response body from upstream = %s" % response.json())
         except ValueError:
             pass
 
     return make_response('', 204)
 
+
+logLevel = logging.DEBUG if debug else logging.INFO
+logging.basicConfig(format=
+                    "%(levelname)s [%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s", level=logLevel)
 
 refOauth.configure_with_opaque("%s%s" % (introspection_host, introspection_path), introspection_client_id,
                                introspection_client_secret)

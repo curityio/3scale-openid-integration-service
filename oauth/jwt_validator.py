@@ -17,15 +17,16 @@
 import calendar
 import json
 import ssl
-import re
 from datetime import datetime
 
+import logging
 from jwkest.jwk import KEYS
 from jwkest.jws import JWS
 from requests import request
 
-
 from oauth.tools import base64_urldecode
+
+logger = logging.getLogger("uwsgi_file_app")
 
 
 class JwtValidatorException(Exception):
@@ -45,35 +46,35 @@ class JwtValidator:
     def validate(self, jwt):
         parts = jwt.split('.')
         if len(parts) != 3:
-            print('Invalid JWT. Only JWS supported.')
+            logger.debug('Invalid JWT. Only JWS supported.')
             return {"active": False}
         try:
             header = json.loads(base64_urldecode(parts[0]))
             payload = json.loads(base64_urldecode(parts[1]))
         except Exception as e:
-            print("Invalid JWT, format not json")
+            logger.debug("Invalid JWT, format not json")
             return {"active": False}
 
         if self.iss != payload['iss']:
-            print("Invalid issuer %s, expected %s" % (payload['iss'], self.iss))
+            logger.debug("Invalid issuer %s, expected %s" % (payload['iss'], self.iss))
             return {"active": False}
 
         if 'aud' not in payload:
-            print("Invalid audience, no audience in payload")
+            logger.debug("Invalid audience, no audience in payload")
             return {"active": False}
 
         aud = payload['aud']
 
         if self.aud not in aud:
-            print("Invalid audience %s, expected %s" % (aud, self.aud))
+            logger.debug("Invalid audience %s, expected %s" % (aud, self.aud))
             return {"active": False}
 
         if 'alg' not in header:
-            print("Missing algorithm in header")
+            logger.debug("Missing algorithm in header")
             return {"active": False}
 
         if header['alg'] not in self.supported_algoritms:
-            print("Unsupported algorithm in header %s" % (header['alg']))
+            logger.debug("Unsupported algorithm in header %s" % (header['alg']))
             return {"active": False}
 
         jws = JWS(alg=header['alg'])
@@ -82,17 +83,17 @@ class JwtValidator:
         try:
             jws.verify_compact(jwt, self.jwks)
         except Exception as e:
-            print("Exception validating signature")
+            logger.debug("Exception validating signature")
             return {'active': False}
 
-        print("Successfully validated signature.")
+        logger.debug("Successfully validated signature.")
 
         if 'exp' not in payload:
-            print("No expiration in body, invalid token")
+            logger.debug("No expiration in body, invalid token")
             return {"active": False}
 
         if 'sub' not in payload:
-            print("No subject in body, invalid token")
+            logger.debug("No subject in body, invalid token")
             return {"active": False}
 
         # Could be an empty scope, which may be allowed, so replace with empty string if not found
