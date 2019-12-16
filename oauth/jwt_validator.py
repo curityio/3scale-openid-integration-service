@@ -25,7 +25,7 @@ from jwkest.jws import JWS
 from requests import request
 
 
-from tools import base64_urldecode
+from oauth.tools import base64_urldecode
 
 
 class JwtValidatorException(Exception):
@@ -45,35 +45,35 @@ class JwtValidator:
     def validate(self, jwt):
         parts = jwt.split('.')
         if len(parts) != 3:
-            print 'Invalid JWT. Only JWS supported.'
+            print('Invalid JWT. Only JWS supported.')
             return {"active": False}
         try:
             header = json.loads(base64_urldecode(parts[0]))
             payload = json.loads(base64_urldecode(parts[1]))
         except Exception as e:
-            print "Invalid JWT, format not json"
+            print("Invalid JWT, format not json")
             return {"active": False}
 
         if self.iss != payload['iss']:
-            print "Invalid issuer %s, expected %s" % (payload['iss'], self.iss)
+            print("Invalid issuer %s, expected %s" % (payload['iss'], self.iss))
             return {"active": False}
 
         if 'aud' not in payload:
-            print "Invalid audience, no audience in payload"
+            print("Invalid audience, no audience in payload")
             return {"active": False}
 
         aud = payload['aud']
 
         if self.aud not in aud:
-            print "Invalid audience %s, expected %s" % (aud, self.aud)
+            print("Invalid audience %s, expected %s" % (aud, self.aud))
             return {"active": False}
 
         if 'alg' not in header:
-            print "Missing algorithm in header"
+            print("Missing algorithm in header")
             return {"active": False}
 
         if header['alg'] not in self.supported_algoritms:
-            print "Unsupported algorithm in header %s" % (header['alg'])
+            print("Unsupported algorithm in header %s" % (header['alg']))
             return {"active": False}
 
         jws = JWS(alg=header['alg'])
@@ -82,17 +82,17 @@ class JwtValidator:
         try:
             jws.verify_compact(jwt, self.jwks)
         except Exception as e:
-            print "Exception validating signature"
+            print("Exception validating signature")
             return {'active': False}
 
-        print "Successfully validated signature."
+        print("Successfully validated signature.")
 
         if 'exp' not in payload:
-            print "No expiration in body, invalid token"
+            print("No expiration in body, invalid token")
             return {"active": False}
 
         if 'sub' not in payload:
-            print "No subject in body, invalid token"
+            print("No subject in body, invalid token")
             return {"active": False}
 
         # Could be an empty scope, which may be allowed, so replace with empty string if not found

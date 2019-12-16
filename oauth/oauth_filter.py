@@ -17,8 +17,8 @@
 import re
 
 from flask import request, abort, g, make_response
-from jwt_validator import JwtValidator
-from opaque_validator import OpaqueValidator
+from oauth.jwt_validator import JwtValidator
+from oauth.opaque_validator import OpaqueValidator
 from functools import wraps
 
 
@@ -111,8 +111,8 @@ class OAuthFilter:
         return decorator
 
     def filter(self, scopes=None):
-        print "Request method = " + str(request.method)
-        print "Authorization Header " + str(request.headers.get("authorization"))
+        print("Request method = " + str(request.method))
+        print("Authorization Header " + str(request.headers.get("authorization")))
         token = self._extract_access_token(request)
 
         try:
