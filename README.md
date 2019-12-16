@@ -45,26 +45,40 @@ First, install the requirements `pip install -r requirements.txt`
 
 Edit the server.py file and configure the corresponding values in the config section:
 ```
-oauth_profile_id = "authorization"                  # Name of the Token Profile
+restconf_api_host = "https://localhost:6749"        # Admin API base url
 restconf_api_username = "admin"                     # Admin user username
 restconf_api_password = "Password1"                 # Admin user password
-restconf_api_host = "https://localhost:6749"        # Admin API base url
-default_scopes = ["read", "write"]                  # Default scopes (can be empty)
-issuer_path  = "/~"                                 # Curity's oauth-anonymous endpoint path
 introspection_host = "http://localhost:8443"        # Curity base URL
+oauth_profile_id = "authorization"                  # Name of the Token Profile
+default_scopes = "read write"                       # Default scopes in a space separated string(can be empty)
+issuer_path  = "/~"                                 # Curity's oauth-anonymous endpoint path
 introspection_path = "/oauth/v2/oauth-introspect"   # Curity's introspection endpoint path
 introspection_client_id = "3scale_rest_api_wrapper" # Client ID for introspection
 introspection_client_secret = "Password2"           # Client secret
+debug = False
 ```
 The client configured in this section must be allowed to do introspection.
 
-Another client will be needed, that can do client_credentilas. This second client will be used by 3Scale to get an access token for further communication with this wrapper.
+Another client will be needed, that can do client_credentials. This second client will be used by 3Scale to get an access token for further communication with this wrapper.
 
+Alternatively, the following environment variables can be set (i.e in a container environment):
+
+* ADMIN_API_BASE_URL
+* ADMIN_API_USERNAME
+* ADMIN_API_PASSWORD
+* CURITY_BASE_URL
+* OAUTH_PROFILE_ID
+* SCOPES
+* CURITY_TOKEN_ANONYMOUS_PATH
+* CURITY_INTROSPECTION_PATH
+* INTROSPECTION_CLIENT_ID
+* INTROSPECTION_CLIENT_SECRET
+* DEBUG
 
 #### Curity configuration
 - Curity's Base URL has to be the one that nginx proxies (configure it under System/General)
 - Create 2 clients, one for introspection which is configured in the python app and one with client_credentials which is configured in 3Scale
-- Change the token endpoint path to be `<issuer>/token_endpoint` this is because currently there is a bug in 3Scale where the token_endpoint is not properly readed from the openid-metadata
+- Change the token endpoint path to be `<issuer>/token_endpoint` this is because currently there is a bug in 3Scale where the token_endpoint is not properly read from the openid-metadata
 
 In order to be able to issue tokens for applications created in 3Scale, the access tokens have to be in JWT format.
 To enable this, set the flag "Use Access Token As JWT" in the Token Profile/Token Issuers page.
@@ -76,7 +90,7 @@ To enable this, set the flag "Use Access Token As JWT" in the Token Profile/Toke
 
 3Scale calls either `<openid_issuer>/clients/<client_id>` or `<openid_issuer>/clients-registrations/default/<client_id>`
 
-Both are trunslated to a PUT to 
+Both are translated to a PUT to 
 `https://<curity_host>:<admin_port>/admin/api/restconf/data/base:profiles/base:profile=<token_profile_id>,oauth-service/base:settings/profile-oauth:authorization-server/profile-oauth:client-store/profile-oauth:config-backed/client=<client_id>"`
 
 Keep in mind that the clients created do not have any authenticators selected so if you need to add more specific configuration you can modify the corresponding JSON Object as needed.

@@ -1,3 +1,6 @@
+import os
+from distutils.util import strtobool
+
 import requests
 from flask import Flask, jsonify, request, make_response
 
@@ -6,20 +9,30 @@ from oauth.oauth_filter import OAuthFilter
 app = Flask(__name__)
 refOauth = OAuthFilter(verify_ssl=False)
 
+
+def string_to_bool(string, default):
+    if string is not None:
+        try:
+            return bool(strtobool(string))
+        except ValueError:
+            pass
+    return default
+
+
 ###################################
 #             CONFIG              #
 ###################################
-oauth_profile_id = "oauth-dev"  # Name of the Token Profile
-restconf_api_username = "admin"
-restconf_api_password = "Password1"
-restconf_api_host = "https://localhost:6749"
-default_scopes = ["read"]
-issuer_path = "/~"
-introspection_host = "http://localhost:8444"  # curity domain, can be either direct http(s)://<IP_OR_HOST>:<PORT>
-introspection_path = "/oauth/v2/oauth-introspect"
-introspection_client_id = "3scale_rest_api_wrapper"
-introspection_client_secret = "One4all1"
-debug = True
+oauth_profile_id = os.getenv('OAUTH_PROFILE_ID') or "token-service"
+restconf_api_username = os.getenv('ADMIN_API_USERNAME') or "admin"
+restconf_api_password = os.getenv('ADMIN_API_PASSWORD') or "ADMIN_PASSWORD"
+restconf_api_host = os.getenv('ADMIN_API_BASE_URL') or "https://localhost:6749"
+default_scopes = os.getenv('SCOPES') or ""
+issuer_path = os.getenv('CURITY_TOKEN_ANONYMOUS_PATH') or "/~"
+introspection_host = os.getenv('CURITY_BASE_URL') or "http://localhost:8444"
+introspection_path = os.getenv('CURITY_INTROSPECTION_PATH') or "/oauth/v2/oauth-introspect"
+introspection_client_id = os.getenv('INTROSPECTION_CLIENT_ID') or "CLIENT_ID"
+introspection_client_secret = os.getenv('INTROSPECTION_CLIENT_SECRET') or "CLIENT_SECRET"
+debug = string_to_bool(os.getenv("DEBUG"), default=False)
 ###################################
 #             CONFIG              #
 ###################################
@@ -61,7 +74,7 @@ def create_client(client_id):
         redirect_uris = ["https://example.com"]
 
     capabilities = {}
-    scopes = default_scopes
+    scopes = default_scopes.split()
 
     if code_flow_enabled:
         capabilities['code'] = [None]
