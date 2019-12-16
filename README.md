@@ -51,6 +51,7 @@ restconf_api_password = "Password1"                 # Admin user password
 introspection_host = "http://localhost:8443"        # Curity base URL
 oauth_profile_id = "authorization"                  # Name of the Token Profile
 default_scopes = "read write"                       # Default scopes in a space separated string(can be empty)
+allowed_authenticators = "html1 bankid"             # Allowed authenticators in a space separated string(can be empty)
 issuer_path  = "/~"                                 # Curity's oauth-anonymous endpoint path
 introspection_path = "/oauth/v2/oauth-introspect"   # Curity's introspection endpoint path
 introspection_client_id = "3scale_rest_api_wrapper" # Client ID for introspection
@@ -69,6 +70,7 @@ Alternatively, the following environment variables can be set (i.e in a containe
 * CURITY_BASE_URL
 * OAUTH_PROFILE_ID
 * SCOPES
+* ALLOWED_AUTHENTICATORS
 * CURITY_TOKEN_ANONYMOUS_PATH
 * CURITY_INTROSPECTION_PATH
 * INTROSPECTION_CLIENT_ID

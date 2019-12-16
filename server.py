@@ -27,6 +27,7 @@ restconf_api_username = os.getenv('ADMIN_API_USERNAME') or "admin"
 restconf_api_password = os.getenv('ADMIN_API_PASSWORD') or "ADMIN_PASSWORD"
 restconf_api_host = os.getenv('ADMIN_API_BASE_URL') or "https://localhost:6749"
 default_scopes = os.getenv('SCOPES') or ""
+allowed_authenticators = os.getenv('ALLOWED_AUTHENTICATORS') or ""
 issuer_path = os.getenv('CURITY_TOKEN_ANONYMOUS_PATH') or "/~"
 introspection_host = os.getenv('CURITY_BASE_URL') or "http://localhost:8444"
 introspection_path = os.getenv('CURITY_INTROSPECTION_PATH') or "/oauth/v2/oauth-introspect"
@@ -105,6 +106,11 @@ def create_client(client_id):
 
     if cc_flow_enabled or code_flow_enabled or ropc_flow_enabled:
         restconf_data["profile-oauth:client"]["secret"] = client_secret
+
+    if (code_flow_enabled or implicit_flow_enabled) and len(allowed_authenticators.split()) > 0:
+        restconf_data["profile-oauth:client"]["user-authentication"] = {
+            "allowed-authenticators": allowed_authenticators.split()
+        }
 
     restconf_api_endpoint_of_client = restconf_api_endpoint % (restconf_api_host, oauth_profile_id, client_id)
     yang_json = "application/yang-data+json"
