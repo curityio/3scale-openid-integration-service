@@ -5,7 +5,7 @@ from distutils.util import strtobool
 import requests
 from flask import Flask, jsonify, request, make_response
 
-from oauth.oauth_filter import OAuthFilter
+from flask_of_oil.oauth_filter import OAuthFilter
 
 app = Flask(__name__)
 

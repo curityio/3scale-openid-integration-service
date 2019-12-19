@@ -14,7 +14,6 @@ RUN pip install -r requirements.txt
 
 COPY uwsgi.ini /app/uwsgi.ini
 
-COPY oauth /app/oauth
 COPY server.py /app/server.py
 
 CMD uwsgi uwsgi.ini
