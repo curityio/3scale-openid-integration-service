@@ -58,10 +58,10 @@ def create_client(client_id):
     redirect_uris = data.get("redirectUris", data.get("redirect_uris", []))
     attributes = data.get("attributes", [])
     enabled = data.get("enabled", True)
-    code_flow_enabled = data.get("standardFlowEnabled", False) or "authorization_code" in data.get("grant_types")
-    implicit_flow_enabled = data.get("implicitFlowEnabled", False) or "implicit" in data.get("grant_types")
-    cc_flow_enabled = data.get("serviceAccountsEnabled", False) or "client_credentials" in data.get("grant_types")
-    ropc_flow_enabled = data.get("directAccessGrantsEnabled", False) or "password" in data.get("grant_types")
+    code_flow_enabled = data.get("standardFlowEnabled", False)
+    implicit_flow_enabled = data.get("implicitFlowEnabled", False)
+    cc_flow_enabled = data.get("serviceAccountsEnabled", False)
+    ropc_flow_enabled = data.get("directAccessGrantsEnabled", False)
 
     app.logger.debug("Got call to update client ID %s with name %s, description = %s, secret = %s, redirect URIs = %s," \
                      " attributes = %s, enabled = %s, code flow enabled = %s, implicit flow enabled = %s, cc flow enabled = %s, " \
