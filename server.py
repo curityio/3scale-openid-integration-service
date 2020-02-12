@@ -44,7 +44,7 @@ restconf_api_endpoint = "%s/admin/api/restconf/data/base:profiles/base:profile=%
 
 
 @app.route(issuer_path + "/clients-registrations/default/<client_id>", methods=["POST", "PUT"])
-@refOauth.protect(scopes=[""])
+@refOauth.protect(scopes=[])
 def create_client(client_id):
     client_id = request.path[request.path.rfind("/") + 1:]
     data = request.json
@@ -134,7 +134,7 @@ def create_client(client_id):
 
 
 @app.route(issuer_path + "/clients-registrations/default/<client_id>", methods=["DELETE"])
-@refOauth.protect(scopes=[""])
+@refOauth.protect(scopes=[])
 def delete_client(client_id):
     client_id = request.path[request.path.rfind("/") + 1:]
 
