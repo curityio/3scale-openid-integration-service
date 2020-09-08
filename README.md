@@ -1,7 +1,7 @@
 ## 3Scale OpenID Integration Service
 
-[![Quality](https://curity.io/assets/images/badges/3scale-openid-integration-service-quality.svg)](https://curity.io/resources/code-examples/status/)
-[![Availability](https://curity.io/assets/images/badges/3scale-openid-integration-service-availability.svg)](https://curity.io/resources/code-examples/status/)
+[![Quality](https://img.shields.io/badge/quality-demo-red)](https://curity.io/resources/code-examples/status/)
+[![Availability](https://img.shields.io/badge/availability-source-blue)](https://curity.io/resources/code-examples/status/)
 
 This sample python application acts as a wrapper of 3Scale's Red Hat SSO integration with OpenID Connect.
 It translates incoming requests to RESTCONF which is used by Curity's configuration admin API.
